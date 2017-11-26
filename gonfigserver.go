@@ -18,6 +18,8 @@ var debug = flag.Bool("debug", false, "Add 'debug' option to start in debugging 
 //var fswatch = flag.Bool("fswatch", false, "Watch changes in file system and reload properties map if any change")
 //var git = flag.Bool("git", false, "Operate with property root as git repo")
 var pFailOnDup = flag.Bool("failondup", false, "Fail to start if app finds key duplication")
+var pReplaceChar = flag.String("replaceChar", ".", "Char to replace not allowed symbols in param key")
+
 var iPort = flag.Int("port", 8080, "Specify port for Gonfig Server")
 var pAddress = flag.String("address", "0.0.0.0", "Specify address for Gonfig Server")
 var propertyRoot = flag.String("root", "", "Specify properties root")
@@ -49,7 +51,11 @@ func main() {
 		//gin.SetMode(gin.ReleaseMode)
 	}
 
-	configManager = NewConfigurationManager(*propertyRoot)
+	if cm, err := New(*propertyRoot); err != nil {
+		panic(err)
+	} else {
+		configManager = cm
+	}
 
 	router := gin.Default()
 	v1 := router.Group("/api/v1")
