@@ -9,7 +9,18 @@ import (
 )
 
 type ConfigurationMap map[string]string
+
 type NamedConfigurationsMap map[string]ConfigurationMap
+
+type Pair struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+type Parameter struct {
+	Pair
+	Namespace string `json:"namespace"`
+}
 
 type ConfigurationManager struct {
 	configMap             NamedConfigurationsMap
@@ -18,12 +29,12 @@ type ConfigurationManager struct {
 	namespaces            []string
 }
 
+const (
+	DefaultNamespace = "default"
+)
+
 func NewConfigurationManager(paths ...string) *ConfigurationManager {
-	configManager := &ConfigurationManager{}
-	configManager.configMap = make(NamedConfigurationsMap)
-	configManager.namespacesParamsNames = make(map[string][]string)
-	configManager.namespaces = make([]string, 0)
-	configManager.mutex = sync.RWMutex{}
+	configManager := createAndInitCM()
 
 	for _, path := range paths {
 		configManager.readNamespace(path)
@@ -33,21 +44,37 @@ func NewConfigurationManager(paths ...string) *ConfigurationManager {
 	return configManager
 }
 
+func createAndInitCM() *ConfigurationManager {
+	configManager := &ConfigurationManager{}
+	configManager.configMap = make(NamedConfigurationsMap)
+	configManager.namespacesParamsNames = make(map[string][]string)
+	configManager.namespaces = make([]string, 0)
+	configManager.mutex = sync.RWMutex{}
+	return configManager
+}
+
 func (cm *ConfigurationManager) Namespaces() []string {
-	logger.Println("GET namespaces(), going to return  ")
+	if cm == nil {
+		return nil
+	}
 	cm.mutex.RLock()
 	defer cm.mutex.RUnlock()
 	return cm.namespaces
 }
 
 func (cm *ConfigurationManager) ConfigKeys(namespace string) []string {
-	logger.Println("GET ConfigKeys() with arg  " + namespace)
+	if cm == nil {
+		return nil
+	}
 	cm.mutex.RLock()
 	defer cm.mutex.RUnlock()
 	return cm.namespacesParamsNames[namespace]
 }
 
-func (cm *ConfigurationManager) ParameterValue(namespace, key string) *string {
+func (cm *ConfigurationManager) ParameterValue(namespace, key string) *Parameter {
+	if cm == nil {
+		return nil
+	}
 	logger.Println("GET ParameterValue() with arg  " + namespace + " " + key)
 	cm.mutex.RLock()
 	defer cm.mutex.RUnlock()
@@ -59,7 +86,7 @@ func (cm *ConfigurationManager) ParameterValue(namespace, key string) *string {
 	if !ok {
 		return nil
 	}
-	return &value
+	return &Parameter{Pair: Pair{Key: key, Value: value}, Namespace: namespace}
 }
 
 func (cm *ConfigurationManager) readNamespace(nPath string) {

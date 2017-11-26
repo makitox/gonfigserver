@@ -14,6 +14,10 @@ var configManager *ConfigurationManager
 var logger *log.Logger
 
 var debug = flag.Bool("debug", false, "Add 'debug' option to start in debugging mode")
+
+//var fswatch = flag.Bool("fswatch", false, "Watch changes in file system and reload properties map if any change")
+//var git = flag.Bool("git", false, "Operate with property root as git repo")
+var pFailOnDup = flag.Bool("failondup", false, "Fail to start if app finds key duplication")
 var iPort = flag.Int("port", 8080, "Specify port for Gonfig Server")
 var pAddress = flag.String("address", "0.0.0.0", "Specify address for Gonfig Server")
 var propertyRoot = flag.String("root", "", "Specify properties root")
@@ -50,11 +54,13 @@ func main() {
 	router := gin.Default()
 	v1 := router.Group("/api/v1")
 	{
-		v1.GET("/single/", fetchAllSpaceNames)
-		v1.GET("/single/:namespace/:paramName", fetchParameter)
-		v1.GET("/single/:namespace/", fetchParametersNameList)
-		v1.GET("/batch/", processBatchRequest)
-		v1.GET("/help/", fetchHelp)
+		v1.GET("/namespaces/", fetchAllSpaceNames)
+		v1.GET("/namespace/:namespace/key/:paramName", fetchParameter)
+		v1.GET("/namespace/:namespace/keylist", fetchParametersNameList)
+		v1.GET("/key/:paramName", fetchParameterForDefault)
+		v1.GET("/keylist", fetchParametersNameListForDefault)
+		//v1.GET("/batch/", processBatchRequest)
+		//v1.GET("/help/", fetchHelp)
 	}
 
 	router.Run(url)

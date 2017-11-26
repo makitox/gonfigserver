@@ -6,7 +6,12 @@ import (
 )
 
 func fetchAllSpaceNames(c *gin.Context) {
-	c.JSON(http.StatusOK, configManager.Namespaces())
+	names := configManager.Namespaces()
+	if names == nil {
+		c.Status(http.StatusNotFound)
+		return
+	}
+	c.JSON(http.StatusOK, names)
 }
 
 func fetchParametersNameList(c *gin.Context) {
@@ -29,7 +34,28 @@ func fetchParameter(c *gin.Context) {
 		return
 	}
 
-	c.String(http.StatusOK, *value)
+	c.JSON(http.StatusOK, *value)
+}
+
+func fetchParameterForDefault(c *gin.Context) {
+	pParamName := c.Param("paramName")
+
+	value := configManager.ParameterValue(DefaultNamespace, pParamName)
+	if value == nil {
+		c.Status(http.StatusNotFound)
+		return
+	}
+
+	c.JSON(http.StatusOK, *value)
+}
+
+func fetchParametersNameListForDefault(c *gin.Context) {
+	names := configManager.ConfigKeys(DefaultNamespace)
+	if names == nil {
+		c.Status(http.StatusNotFound)
+		return
+	}
+	c.JSON(http.StatusOK, names)
 }
 
 func processBatchRequest(c *gin.Context) {
