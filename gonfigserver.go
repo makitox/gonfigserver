@@ -3,53 +3,47 @@ package main
 import (
 	"flag"
 	"github.com/gin-gonic/gin"
+	cl "github.com/op/go-logging"
 	"strconv"
-	//"io"
-	"log"
-	"os"
 	// "github.com/rjeczalik/notify"
 )
 
 var configManager *ConfigurationManager
-var logger *log.Logger
+var logger = cl.MustGetLogger("gonfigserver")
 
 var debug = flag.Bool("debug", false, "Add 'debug' option to start in debugging mode")
 
-//var fswatch = flag.Bool("fswatch", false, "Watch changes in file system and reload properties map if any change")
-//var git = flag.Bool("git", false, "Operate with property root as git repo")
-var pFailOnDup = flag.Bool("failondup", false, "Fail to start if app finds key duplication")
-var pReplaceChar = flag.String("replaceChar", ".", "Char to replace not allowed symbols in param key")
+// var fswatch = flag.Bool("fswatch", false, "Watch changes in file system and reload properties map if any change")
+// var git = flag.Bool("git", false, "Operate with property root as git repo")
+// var loggerRoot = flag.String("log", "", "Specify log file full path")
 
+var pFailOnDup = flag.Bool("failondup", true, "Fail to start if app finds key duplication")
+var pReplaceChar = flag.String("replaceChar", ".", "Char to replace not allowed symbols in param key")
 var iPort = flag.Int("port", 8080, "Specify port for Gonfig Server")
 var pAddress = flag.String("address", "0.0.0.0", "Specify address for Gonfig Server")
 var propertyRoot = flag.String("root", "", "Specify properties root")
-var loggerRoot = flag.String("log", "", "Specify log file full path")
 
 func main() {
-
 	flag.Parse()
 
-	// TODO: orginize right logging here
-	//if loggerRoot == nil || *loggerRoot == "" {
-	logger = log.New(os.Stdout, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
-	//} else {
-	//
-	//}
 	sPort := strconv.Itoa(*iPort)
 	sAddress := *pAddress
-	logger.Println("Starting Gonfig Server")
-	logger.Println("port: " + sPort)
-	logger.Println("address: " + sAddress)
+	logger.Info("Starting Gonfig Server with configuration:")
+	logger.Info("\tport: " + sPort)
+	logger.Info("\taddress: " + sAddress)
 	url := sAddress + ":" + sPort
-	logger.Println("listening url: " + url)
-	logger.Println("property root: " + *propertyRoot)
-	logger.Println("logger root: " + *loggerRoot)
+	logger.Info("\tlistening url: " + url)
+	logger.Info("\tproperty root: " + *propertyRoot)
+	//logger.Info("\tlogger root: " + *loggerRoot)
 	if *debug {
-		logger.Println("mode: debug")
+		logger.Info("\tmode: debug")
 	} else {
-		logger.Println("mode: release")
-		//gin.SetMode(gin.ReleaseMode)
+		logger.Info("\tmode: release")
+		gin.SetMode(gin.ReleaseMode)
 	}
+	logger.Info("\tfail on paramkey duplicates: " + strconv.FormatBool(*pFailOnDup))
+	logger.Info("\treplace character: '" + *pReplaceChar + "'")
+	logger.Info("\n")
 
 	if cm, err := New(*propertyRoot); err != nil {
 		panic(err)
@@ -70,5 +64,4 @@ func main() {
 	}
 
 	router.Run(url)
-	logger.Println("Gonfig Server finished")
 }

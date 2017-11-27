@@ -34,13 +34,14 @@ const (
 	PropertyFileMask = "*.properties"
 )
 
-func New(paths string) (*ConfigurationManager, error) {
+func New(path string) (*ConfigurationManager, error) {
+	logger.Infof("Initialization Configuration manager with init path %s", path)
 	configManager := createAndInitCM()
 
-	if err := configManager.readConfigRoot(paths); err != nil {
+	if err := configManager.readConfigRoot(path); err != nil {
 		return nil, err
 	}
-
+	logger.Infof("\n")
 	configManager.prepareIndexes()
 	return configManager, nil
 }
@@ -76,7 +77,6 @@ func (cm *ConfigurationManager) ParameterValue(namespace, key string) *Parameter
 	if cm == nil {
 		return nil
 	}
-	logger.Println("GET ParameterValue() with arg  " + namespace + " " + key)
 	cm.mutex.RLock()
 	defer cm.mutex.RUnlock()
 	namespaceConfigMap, ok := cm.configMap[namespace]
@@ -101,6 +101,7 @@ func (cm *ConfigurationManager) readConfigRoot(path string) error {
 		return err
 	}
 
+	logger.Infof("Try property root: namespace %s path %s", DefaultNamespace, absPropertiesRoot)
 	// Read property root folder as 'default namespace'
 	if err := cm.readProperties(absPropertiesRoot, DefaultNamespace, PropertyFileMask); err != nil {
 		logger.Fatal(err)
@@ -113,6 +114,7 @@ func (cm *ConfigurationManager) readConfigRoot(path string) error {
 		if f.IsDir() {
 			namespace := f.Name()
 			absNamespaceRoot := filepath.Join(absPropertiesRoot, f.Name())
+			logger.Infof("Try property root: namespace %s path %s", namespace, absNamespaceRoot)
 			if err := cm.readProperties(absNamespaceRoot, namespace, PropertyFileMask); err != nil {
 				logger.Fatal(err)
 				return err
@@ -123,23 +125,29 @@ func (cm *ConfigurationManager) readConfigRoot(path string) error {
 }
 
 func (cm *ConfigurationManager) readProperties(path, namespace, fileMask string) error {
+	logger.Infof("Read properties root:  namespace = %s, path = %s", namespace, path)
 	propertyFiles, err := filepath.Glob(filepath.Join(path, fileMask))
 	if err != nil {
 		logger.Fatal(err)
 		return err
 	}
+
 	for _, propertyFile := range propertyFiles {
+		logger.Infof("\tRead property file: %s", propertyFile)
 		p := properties.MustLoadFile(propertyFile, properties.UTF8)
 		for _, key := range p.Keys() {
 			value, _ := p.Get(key)
+			logger.Infof("\t\tFound property: key=%s, value=%s, namespace=%s", key, value, namespace)
 			if cm.configMap[namespace] == nil {
+				logger.Infof("\t\tNamespace %s is empty, creating one", namespace)
 				cm.configMap[namespace] = ConfigurationMap{}
 			}
-			if _, ok := cm.configMap[namespace][key]; ok && *pFailOnDup {
+			if existValue, ok := cm.configMap[namespace][key]; ok && *pFailOnDup {
+				logger.Infof("\t\tproperty:  " + key + " already exist with value " + existValue)
 				return errors.New("Found duplicated parameter in namespace " + namespace + " with key = " + key)
 			} else {
 				cm.configMap[namespace][key] = value
-				logger.Println("property:  " + key + " = " + value)
+				//logger.Infof("property:  " + key + " = " + value)
 			}
 
 		}
@@ -148,26 +156,25 @@ func (cm *ConfigurationManager) readProperties(path, namespace, fileMask string)
 }
 
 func (cm *ConfigurationManager) prepareIndexes() {
-	logger.Println("Creating indexes")
+	logger.Infof("Creating indexes for Configuration Manager:")
 	for namespace := range cm.configMap {
-		logger.Println("Found namespace: " + namespace)
+		logger.Infof("\tIndex namespace: %s. Indexing keys: ", namespace)
 		cm.namespaces = append(cm.namespaces, namespace)
 		if cm.namespacesParamsNames[namespace] == nil {
 			cm.namespacesParamsNames[namespace] = make([]string, len(cm.namespacesParamsNames[namespace]))
 		}
 		for paramKey := range cm.configMap[namespace] {
-			logger.Println(" - found param key: " + paramKey)
+			logger.Infof("\t\tindex key: " + paramKey)
 			cm.namespacesParamsNames[namespace] = append(cm.namespacesParamsNames[namespace], paramKey)
 		}
 	}
-	logger.Println("Stored namespaces: ")
+	logger.Infof("Index keylists: ")
 	for _, namespace := range cm.namespaces {
-		logger.Println(namespace)
-		logger.Println(" - Stored keys: ")
+		logger.Infof("\tNamespace: %s. Indexing keys: ", namespace)
 		for _, k := range cm.namespacesParamsNames[namespace] {
-			logger.Println("    - " + k)
+			logger.Infof("\t\t%s", k)
 		}
 	}
-	logger.Println("Stored namespaces: ")
-
+	logger.Infof("Indexing finished")
+	logger.Infof("\n")
 }
