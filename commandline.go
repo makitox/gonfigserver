@@ -1,6 +1,9 @@
 package main
 
-import "flag"
+import (
+	"flag"
+	"strconv"
+)
 
 var debug = flag.Bool("debug", false, "Add 'debug' option to start in debugging mode")
 
@@ -13,3 +16,26 @@ var pReplaceChar = flag.String("replaceChar", ".", "Char to replace not allowed 
 var iPort = flag.Int("port", 8080, "Specify port for Gonfig Server")
 var pAddress = flag.String("address", "0.0.0.0", "Specify address for Gonfig Server")
 var propertyRoot = flag.String("root", "", "Specify properties root")
+var listenURL string
+
+func readCommandLIneFlags() {
+	flag.Parse()
+
+	sPort := strconv.Itoa(*iPort)
+	sAddress := *pAddress
+	logger.Info("Starting Gonfig Server with configuration:")
+	logger.Info("\tport: " + sPort)
+	logger.Info("\taddress: " + sAddress)
+	listenURL = sAddress + ":" + sPort
+	logger.Info("\tlistening url: " + listenURL)
+	logger.Info("\tproperty root: " + *propertyRoot)
+	//logger.Info("\tlogger root: " + *loggerRoot)
+	if *debug {
+		logger.Info("\tmode: debug")
+	} else {
+		logger.Info("\tmode: release")
+	}
+	logger.Info("\tfail on paramkey duplicates: " + strconv.FormatBool(*pFailOnDup))
+	logger.Info("\treplace character: '" + *pReplaceChar + "'")
+	logger.Info("\n")
+}

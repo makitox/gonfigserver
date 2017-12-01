@@ -63,6 +63,7 @@ func (pm *SyncMapPropertiesMonitor) Init(path string, config MonitorConfiguratio
 	pm.namespaces = make([]string, 0)
 	pm.mutex = sync.RWMutex{}
 	pm.readConfigRoot(path, config)
+	pm.prepareIndexes()
 	return nil
 }
 
