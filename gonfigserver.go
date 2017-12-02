@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 	mm "github.com/gonfigserver/mapmonitor"
 	cl "github.com/op/go-logging"
-	// "github.com/rjeczalik/notify"
 )
 
 var logger = cl.MustGetLogger("gonfigserver")
@@ -18,12 +17,8 @@ func main() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	var config = mm.MonitorConfiguration{}
-	config.PropertyFileMask = mm.PropertyFileMask
-	config.FailOnDuplicates = *pFailOnDup
-
 	var err error
-	if configManager, err = New(*propertyRoot, config); err != nil {
+	if configManager, err = NewMonitor(); err != nil {
 		panic(err)
 	}
 
@@ -35,8 +30,6 @@ func main() {
 		v1.GET("/namespace/:namespace/keylist", fetchParametersNameList)
 		v1.GET("/key/:paramName", fetchParameterForDefault)
 		v1.GET("/keylist", fetchParametersNameListForDefault)
-		//v1.GET("/batch/", processBatchRequest)
-		//v1.GET("/help/", fetchHelp)
 	}
 
 	router.Run(listenURL)

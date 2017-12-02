@@ -58,12 +58,3 @@ func fetchParametersNameListForDefault(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, names)
 }
-
-//func processBatchRequest(c *gin.Context) {
-//	// q := c.Query("q")
-//	c.Status(http.StatusNotImplemented)
-//}
-//
-//func fetchHelp(c *gin.Context) {
-//	c.Status(http.StatusNotImplemented)
-//}
