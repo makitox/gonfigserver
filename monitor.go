@@ -1,7 +1,7 @@
 package main
 
 import (
-	mm "github.com/gonfigserver/mapmonitor"
+	mm "github.com/makitox/gonfigserver/mapmonitor"
 	"path/filepath"
 )
 

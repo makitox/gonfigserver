@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	mm "github.com/gonfigserver/mapmonitor"
+	mm "github.com/makitox/gonfigserver/mapmonitor"
 	cl "github.com/op/go-logging"
 )
 
@@ -30,6 +30,7 @@ func main() {
 		v1.GET("/namespace/:namespace/keylist", fetchParametersNameList)
 		v1.GET("/key/:paramName", fetchParameterForDefault)
 		v1.GET("/keylist", fetchParametersNameListForDefault)
+		v1.GET("/filter/keylist/:filterQuery", fetchFilteredKeyListForDefault)
 	}
 
 	router.Run(listenURL)

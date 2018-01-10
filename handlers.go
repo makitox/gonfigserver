@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	mm "github.com/gonfigserver/mapmonitor"
+	mm "github.com/makitox/gonfigserver/mapmonitor"
 	"net/http"
 )
 
@@ -57,4 +57,9 @@ func fetchParametersNameListForDefault(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, names)
+}
+
+func fetchFilteredKeyListForDefault(c *gin.Context){
+	names := configManager.KeysList(mm.DefaultNamespace)
+	c.JSON(http.StatusOK, "")
 }
