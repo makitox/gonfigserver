@@ -30,7 +30,7 @@ func main() {
 		v1.GET("/namespace/:namespace/keylist", fetchParametersNameList)
 		v1.GET("/key/:paramName", fetchParameterForDefault)
 		v1.GET("/keylist", fetchParametersNameListForDefault)
-		v1.GET("/filter/keylist/:filterQuery", fetchFilteredKeyListForDefault)
+		v1.GET("/pattern/:pattern/keylist/", fetchPatternKeyListForDefault)
 	}
 
 	router.Run(listenURL)

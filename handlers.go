@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	mm "github.com/makitox/gonfigserver/mapmonitor"
 	"net/http"
+	"regexp"
 )
 
 func fetchAllSpaceNames(c *gin.Context) {
@@ -59,7 +60,15 @@ func fetchParametersNameListForDefault(c *gin.Context) {
 	c.JSON(http.StatusOK, names)
 }
 
-func fetchFilteredKeyListForDefault(c *gin.Context){
+func fetchPatternKeyListForDefault(c *gin.Context){
+	pPattern := c.Param("pattern")
+	var compiledPattern = regexp.MustCompile(pPattern)
 	names := configManager.KeysList(mm.DefaultNamespace)
-	c.JSON(http.StatusOK, "")
+	var matchedNames []string
+	for _, value := range names {
+		if compiledPattern.MatchString(value) {
+			matchedNames = append(matchedNames, value)
+		}
+	}
+	c.JSON(http.StatusOK, matchedNames)
 }
